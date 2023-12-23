@@ -1,8 +1,13 @@
 from tcp_client import *
 import constants
 
+server_ip_address = ''
+
 if __name__ == '__main__':
-    tcp_client = tcp_client(server_host='172.17.0.2', server_port=constants.TCP_PORT)
+    with open("ip.txt","r") as ip_file:
+        server_ip_address = ip_file.read()
+
+    tcp_client = tcp_client(server_host=server_ip_address, server_port=constants.TCP_PORT)
 
     for i in range(constants.NUMBER_OF_FILES):
         tcp_client.receive(i)

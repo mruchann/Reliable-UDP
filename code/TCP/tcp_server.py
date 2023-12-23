@@ -1,6 +1,5 @@
 import socket
 import constants
-import utils
 
 class tcp_server:
     def __init__(self, server_host, server_port):

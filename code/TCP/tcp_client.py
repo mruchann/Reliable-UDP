@@ -31,7 +31,7 @@ class tcp_client:
 
         # size is small, 1024 is not needed, just to make it slower
 
-        while len(large_buffer) < large_file_size:
+        while len(small_buffer) < small_file_size:
             small_buffer += self.clientSocket.recv(min(small_file_size - len(small_buffer), 1024))
 
         small_file_name = "small-" + str(file_index) + ".obj"

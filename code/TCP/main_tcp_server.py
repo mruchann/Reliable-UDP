@@ -1,12 +1,23 @@
 from tcp_server import *
+import socket
 import constants
 
 # Here is our main function for our TCP server, to operate server operations such as reading objects and sending them to the TCP client.
 
+server_ip_address = ''
+
 if __name__ == '__main__':
+    try:
+        server_host = socket.gethostname()
+        server_ip_address = socket.gethostbyname(server_host)
+        constants.HOST = server_ip_address
+        with open("ip.txt","w") as ip_file:
+            ip_file.write(server_ip_address)
+    except socket.error as e:
+        pass
 
     # We instantiate our tcp_server with the server_host and server_port parameters.
-    tcp_server = tcp_server(server_host='172.17.0.2', server_port=constants.TCP_PORT)
+    tcp_server = tcp_server(server_host=constants.HOST, server_port=constants.TCP_PORT)
 
     # for each file index, we read a large and small file and send them by the tcp_server to the tcp_client
     for i in range(constants.NUMBER_OF_FILES):
