@@ -9,6 +9,8 @@ def load_files():
                 chunk = f.read(constants.PACKET_PAYLOAD_SIZE)
                 if not chunk:
                     break
+
+                # We compress files thanks to advise from Ertan hoca
                 yield zlib.compress(chunk)
         yield b''  # end of the file
 
@@ -17,6 +19,8 @@ def load_files():
                 chunk = f.read(constants.PACKET_PAYLOAD_SIZE)
                 if not chunk:
                     break
+                    
+                # We compress files thanks to advise from Ertan hoca
                 yield zlib.compress(chunk)
         yield b''  # end of the file
 

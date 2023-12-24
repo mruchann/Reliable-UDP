@@ -19,7 +19,9 @@ class packet:
     # This library helps us work with low-level binary representations
     # packs the packet into the bytes, also calculates the checksum before packing
     def pack(self):
+
         self.payload_size = len(self.payload)
+        print("payload size:", self.payload_size)
         self.checksum = self.calculate_checksum()
         free_space = constants.PACKET_PAYLOAD_SIZE - self.payload_size
         return struct.pack(f'!I16sHdHI{self.payload_size}s{free_space}s', self.sequence_number, self.checksum,
