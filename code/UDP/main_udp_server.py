@@ -2,11 +2,11 @@ from udp_server import *
 import constants
 
 
-def payload_yielder(chunk_size=constants.PACKET_PAYLOAD_SIZE):
+def load_files(chunk_size=constants.PACKET_PAYLOAD_SIZE):
     for i in range(10):
         with open("../../root/objects/large-" + str(i) + ".obj", "rb") as f:
             while True:
-                chunk = f.read(constants.PACKET_PAYLOAD_SIZE)
+                chunk = f.read(chunk_size)
                 if not chunk:
                     break
                 yield chunk
@@ -14,7 +14,7 @@ def payload_yielder(chunk_size=constants.PACKET_PAYLOAD_SIZE):
 
         with open("../../root/objects/small-" + str(i) + ".obj", "rb") as f:
             while True:
-                chunk = f.read(constants.PACKET_PAYLOAD_SIZE)
+                chunk = f.read(chunk_size)
                 if not chunk:
                     break
                 yield chunk
@@ -24,6 +24,6 @@ def payload_yielder(chunk_size=constants.PACKET_PAYLOAD_SIZE):
 if __name__ == '__main__':
     udp_server = udp_server("192.168.215.2", constants.UDP_SERVER_PORT,
                             "192.168.215.3", constants.UDP_CLIENT_PORT,
-                            payload_yielder())
+                            load_files())
     udp_server.send_to_client()
     udp_server.close_socket()

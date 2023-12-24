@@ -19,6 +19,7 @@ import datetime
 # sock.sendto(willsend,(ip,port))
 
 
+
 class udp_server:
     def __init__(self, serverHost, serverPort, clientHost, clientPort, data=None):
         self.serverHost = serverHost
@@ -46,6 +47,7 @@ class udp_server:
             try:
                 chunk = next(self.data)
 
+                # finished file's stream id
                 self.server_window.append(packet(self.sequence_number, self.stream_id, chunk, constants.WAITING))
                 self.sequence_number += 1
 
@@ -57,44 +59,73 @@ class udp_server:
 
     def send_to_client(self):
         while self.server_window:
+
+            # sending packets with the state WAITING
             for p in self.server_window:
                 packet_to_send = p
-                packet_to_send.sent_time = utils.get_current_timestamp()
                 if packet_to_send.state == constants.WAITING:
-                    packet.state = constants.SENT
+                    packet_to_send.sent_time = utils.get_current_timestamp()
+                    packet_to_send.state = constants.SENT
                     self.serverSocket.sendto(packet_to_send.pack(), (self.clientHost, self.clientPort))
                     print(f"we sent seq:{packet_to_send.sequence_number}, stream_id: {packet_to_send.stream_id}")
 
             try:
+                #print("azd")
                 ack_packet, _ = self.serverSocket.recvfrom(constants.ACK_PACKET_SIZE)
                 ack_seq = unpack_ack(ack_packet)
 
-                if ack_seq <= self.server_window[0].sequence_number:
+                #print("azd")
+
+                # if ack_seq == self.server_window[0].sequence_number:
+                #     packet_to_send = self.server_window[0]
+                #     packet_to_send.sent_time = utils.get_current_timestamp()
+                #     self.serverSocket.sendto(packet_to_send.pack(), (self.clientHost, self.clientPort))
+
+                if ack_seq < self.server_window[0].sequence_number:
                     self.duplicate_ack_count += 1
+                    print(f"dupAck:{self.duplicate_ack_count}")
+                    packet_to_send = self.server_window[0]
+                    packet_to_send.sent_time = utils.get_current_timestamp()
+                    self.serverSocket.sendto(packet_to_send.pack(), (self.clientHost, self.clientPort))
                     if self.duplicate_ack_count == 3:
                         print(f"dupAck:{self.duplicate_ack_count}")
-                        packet_to_send = self.server_window[0]
-                        packet_to_send.sent_time = utils.get_current_timestamp()
-                        self.serverSocket.sendto(packet_to_send.pack(), (self.clientHost, self.clientPort))
                         self.duplicate_ack_count = 0
                         continue
 
                 self.duplicate_ack_count = 0
 
+                #print(f"if'e girmedi")
+
                 while self.server_window and self.server_window[0].sequence_number < ack_seq:
                     self.server_window.popleft()
 
+                """
                 for p in self.server_window:
                     cur_time = utils.get_current_timestamp()
+                    if p.sent_time is None:
+                        break
                     if cur_time - p.sent_time > constants.PACKET_TIMEOUT_IN_SECONDS:
-                        print(f"retransmitted:{p.sequence_number}")
+                        #print(f"retransmitted:{p.sequence_number}")
                         p.sent_time = cur_time
                         self.serverSocket.sendto(p.pack(), (self.clientHost, self.clientPort))
-
-                self.fill_window()
+                """
 
             except BlockingIOError:
+                #print("BLOCKINGIOERROR EXCEPTION")
                 pass
+
+            for p in self.server_window:
+                cur_time = utils.get_current_timestamp()
+                #print("azdazdazdazad")
+                if p.sent_time is None:
+                    continue
+                if cur_time - p.sent_time > constants.PACKET_TIMEOUT_IN_SECONDS:
+                    print(f"retransmitted:{p.sequence_number}")
+                    p.sent_time = cur_time
+                    self.serverSocket.sendto(p.pack(), (self.clientHost, self.clientPort))
+
+            self.fill_window()
+
 
     def close_socket(self):
         self.serverSocket.close()
