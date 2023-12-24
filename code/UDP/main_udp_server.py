@@ -11,6 +11,9 @@ def load_files():
                     break
 
                 # We compress files thanks to advise from Ertan hoca
+                # print(1 - len(zlib.compress(chunk)) / len(chunk), "% large file improvement")
+                # print("large chunk size:", len(chunk))
+                # print("large compressed chunk size:", len(zlib.compress(chunk)))
                 yield zlib.compress(chunk)
         yield b''  # end of the file
 
@@ -19,8 +22,11 @@ def load_files():
                 chunk = f.read(constants.PACKET_PAYLOAD_SIZE)
                 if not chunk:
                     break
-                    
+
                 # We compress files thanks to advise from Ertan hoca
+                # print(1 - len(zlib.compress(chunk)) / len(chunk), "% large file improvement")
+                # print("small chunk size:", len(chunk))
+                # print("small compressed chunk size:", len(zlib.compress(chunk)))
                 yield zlib.compress(chunk)
         yield b''  # end of the file
 

@@ -22,4 +22,4 @@ UDP_CLIENT_PORT = 50000
 UDP_SERVER_PORT = 60000
 
 # Size of the receiver (client) and sender (server) windows
-WINDOW_SIZE = 1150
+WINDOW_SIZE = 1120 #1150
