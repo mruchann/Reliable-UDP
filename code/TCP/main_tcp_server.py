@@ -7,8 +7,12 @@ import constants
 server_ip_address = ''
 
 if __name__ == '__main__':
+    # I initiate with some random ip
     server_ip_address = '0.0.0.0'
     try:
+        # This part writes the server ip to the file. Here, our purpose is to
+        # automate the system without entering the ip addresses by hand.
+        # Therefore, you do not need to change anything related to IP addresses
         server_host = socket.gethostname()
         server_ip_address = socket.gethostbyname(server_host)
         with open("ip.txt","w") as ip_file:

@@ -1,5 +1,3 @@
-CMD = time
-
 # UDP server and client commands
 us:
 	python3 UDP/main_udp_server.py

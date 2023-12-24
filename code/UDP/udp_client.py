@@ -3,33 +3,34 @@ from packet import *
 import constants
 from collections import deque
 
-# sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-# sock.bind(('',65432))
-# message, address = sock.recvfrom(constants.PACKET_TOTAL_SIZE)
-# sequence_number, payload, stream_id = unpack(message)
-# print(f" payload : {payload.decode()} sequence_number: {sequence_number}")
-
 
 class udp_client:
     def __init__(self, clientHost, clientPort):
+        # class members
         self.clientHost = clientHost
         self.clientPort = clientPort
 
+        # creates the client socket and does the binding
         self.clientSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.clientSocket.bind((self.clientHost, self.clientPort))
 
+        # disables socket blocking
         self.clientSocket.setblocking(False)
-        self.clientSocket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 16777216)
-        self.clientSocket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 16777216)
 
+        # sets the receiver buffer space
+        self.clientSocket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 16777216)
+
+        # class members with initial values
         self.sequence_number = 1
 
+        # boolean array keeping track of the finished files
         self.finished_files = [False for _ in range(2 * constants.NUMBER_OF_FILES)] # 0...19
-        self.client_window = deque()
 
+        # creates the client window and fills it
+        self.client_window = deque()
         self.fill_window_with_ack()
 
-
+    # as its name suggests, fills the window with acks
     def fill_window_with_ack(self):
         while len(self.client_window) < constants.WINDOW_SIZE:
             self.client_window.append(packet(self.sequence_number))
@@ -39,51 +40,49 @@ class udp_client:
     def transmission_not_ended(self):
         for stream_id in range(2 * constants.NUMBER_OF_FILES): # 0...19
             if not self.finished_files[stream_id]:
-                #print(f"Transmission not ended for {stream_id}")
                 return True
         return False
 
     def receive_from_server(self):
-        i = 0
-        server_addr = ("192.168.215.2",constants.UDP_SERVER_PORT)
         while self.transmission_not_ended():
             try:
                 data, server_address = self.clientSocket.recvfrom(constants.PACKET_TOTAL_SIZE)
+                # retrieves the needed values
                 sequence_number, payload, stream_id = unpack(data)
 
-                if payload is not None and sequence_number <= self.client_window[-1].sequence_number: # goray abi d
-                    #print(f"we get: ", sequence_number, stream_id, " we need:", self.client_window[0].sequence_number , " ----> ", len(self.client_window),
-                    #      " ------> ", self.client_window[-1].sequence_number)
+                # the packet is not corrupted and sequence number doesn't exceed the largest sequence number in the window
+                if payload is not None and sequence_number <= self.client_window[-1].sequence_number:
+
+                    # ignores the sequence number lower than the first sequence number in the window
                     if sequence_number < self.client_window[0].sequence_number:
-                        #print("Allah affetsin")
                         continue
 
+                    # match
                     if sequence_number == self.client_window[0].sequence_number:
+                        # sets the retrieved values to the client_window[0]
                         self.client_window[0].payload = payload
                         self.client_window[0].stream_id = stream_id
                         self.client_window[0].state = constants.RECEIVED
 
                         while self.client_window:
+
+                            # if the file has finished, pops the packet
                             if self.client_window[0].stream_id is not None and self.finished_files[self.client_window[0].stream_id] == True:
                                 self.client_window.popleft()
                                 continue
 
+                            # if we find a received packet, break
                             if self.client_window[0].state != constants.RECEIVED:
                                 break
 
+                            # finished the file
                             if len(self.client_window[0].payload) == 0:
                                 self.finished_files[self.client_window[0].stream_id] = True
                                 self.client_window.popleft()
                                 continue
 
-                            #print(f"we popped from the window, and the window size is {len(self.client_window)}")
-                            # print(f"we yield:{self.client_window[0].sequence_number} ")
+                            # returns the payload and stream_id array in the background
                             yield self.client_window[0].payload, self.client_window[0].stream_id
-
-                            # ack_packet = packet(self.client_window[0].sequence_number)
-                            #
-                            # #print(f"we acked:{ack_packet.sequence_number} ")
-                            # self.clientSocket.sendto(ack_packet.pack_ack(), server_address)
 
                             self.client_window.popleft()
 
@@ -91,30 +90,21 @@ class udp_client:
                             # print(f"self.sequence_number: {self.sequence_number}")
                             self.sequence_number += 1
 
+                    # the sequence numbers don't match, finds that packet and sets its values
                     else:
                         for p in self.client_window:
                             if p.sequence_number == sequence_number and p.state == constants.WAITING:
                                 p.payload = payload
                                 p.state = constants.RECEIVED
                                 p.stream_id = stream_id
-                                # print(f"we marked: {p.sequence_number}, p.stream_id: {p.stream_id}")
-                            # print(f"we did not  mark: {p.sequence_number}, p.stream_id: {p.stream_id}")
-                        # previous file is completed, dummy packet being received
 
-                # we sent ack for corrupted payload as well
-                # if we do not yield payload, we should send the ack anyway.
+
                 ack_packet = packet(self.client_window[0].sequence_number)
-                #print(f"we acked: {ack_packet.sequence_number}")
                 self.clientSocket.sendto(ack_packet.pack_ack(), server_address)
 
             except BlockingIOError:
-                #i += 1
-                #print("EXCEPTION HANDLED, i:",i)
                 pass
 
-            #ack_packet = packet(self.client_window[0].sequence_number)
-            #print(f"we acked finally: {ack_packet.sequence_number}")
-            #self.clientSocket.sendto(ack_packet.pack_ack(), server_addr)
 
     # close the socket connection
     def close_socket(self):

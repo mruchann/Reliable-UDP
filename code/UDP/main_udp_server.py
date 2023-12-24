@@ -2,11 +2,11 @@ from udp_server import *
 import constants
 
 
-def load_files(chunk_size=constants.PACKET_PAYLOAD_SIZE):
+def load_files():
     for i in range(10):
         with open("../../root/objects/large-" + str(i) + ".obj", "rb") as f:
             while True:
-                chunk = f.read(chunk_size)
+                chunk = f.read(constants.PACKET_PAYLOAD_SIZE)
                 if not chunk:
                     break
                 yield chunk
@@ -14,7 +14,7 @@ def load_files(chunk_size=constants.PACKET_PAYLOAD_SIZE):
 
         with open("../../root/objects/small-" + str(i) + ".obj", "rb") as f:
             while True:
-                chunk = f.read(chunk_size)
+                chunk = f.read(constants.PACKET_PAYLOAD_SIZE)
                 if not chunk:
                     break
                 yield chunk
@@ -22,8 +22,14 @@ def load_files(chunk_size=constants.PACKET_PAYLOAD_SIZE):
 
 
 if __name__ == '__main__':
+    # creates the udp server object, with server ip address, server port, client ip address and client port
+    # loads all files as data to the udp server object, putting a file seperator b'' between them
     udp_server = udp_server("192.168.215.2", constants.UDP_SERVER_PORT,
                             "192.168.215.3", constants.UDP_CLIENT_PORT,
                             load_files())
+
+    # sends the loaded files to the client
     udp_server.main_send()
+
+    # closes the udp server socket
     udp_server.close_socket()
