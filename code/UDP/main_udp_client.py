@@ -15,7 +15,7 @@ if __name__ == '__main__':
         file_name = ("large-" if i % 2 == 0 else "small-") + str(i // 2) + ".obj"
 
         with open(file_name, "wb") as binary_file:
-            print(f"length: {len(file_buffer[i])}")
+            #print(f"length: {len(file_buffer[i])}")
             binary_file.write(file_buffer[i])
 
     udp_client.close_socket()

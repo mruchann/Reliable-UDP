@@ -25,5 +25,5 @@ if __name__ == '__main__':
     udp_server = udp_server("192.168.215.2", constants.UDP_SERVER_PORT,
                             "192.168.215.3", constants.UDP_CLIENT_PORT,
                             load_files())
-    udp_server.send_to_client()
+    udp_server.main_send()
     udp_server.close_socket()

@@ -7,17 +7,17 @@ import constants
 server_ip_address = ''
 
 if __name__ == '__main__':
+    server_ip_address = '0.0.0.0'
     try:
         server_host = socket.gethostname()
         server_ip_address = socket.gethostbyname(server_host)
-        constants.HOST = server_ip_address
         with open("ip.txt","w") as ip_file:
             ip_file.write(server_ip_address)
     except socket.error as e:
         pass
 
     # We instantiate our tcp_server with the server_host and server_port parameters.
-    tcp_server = tcp_server(server_host=constants.HOST, server_port=constants.TCP_PORT)
+    tcp_server = tcp_server(server_ip_address, server_port=constants.TCP_PORT)
 
     # for each file index, we read a large and small file and send them by the tcp_server to the tcp_client
     for i in range(constants.NUMBER_OF_FILES):

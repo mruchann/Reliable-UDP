@@ -12,7 +12,7 @@ class tcp_server:
         self.connectionSocket, _ = self.serverSocket.accept()
 
     def send(self, binary_file):
-        self.connectionSocket.send('{:8d}'.format(len(binary_file)).encode()) # 1 byte is enough
+        self.connectionSocket.send('{:16d}'.format(len(binary_file)).encode()) # 1 byte is enough
         self.connectionSocket.sendall(binary_file)
 
     def close(self):

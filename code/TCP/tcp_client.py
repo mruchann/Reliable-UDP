@@ -10,7 +10,7 @@ class tcp_client:
 
         self.clientSocket.connect((self.server_host, self.server_port))
 
-    def receive(self, file_index):
+    def large_receive(self, file_index):
         #large
         large_file_size = int(self.clientSocket.recv(constants.FILE_SIZE_LENGTH))
 
@@ -24,6 +24,7 @@ class tcp_client:
         with open(large_file_name, "wb") as f:
             f.write(large_buffer)
 
+    def small_receive(self, file_index):
         # small
         small_file_size = int(self.clientSocket.recv(constants.FILE_SIZE_LENGTH))
 
