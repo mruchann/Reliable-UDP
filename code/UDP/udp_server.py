@@ -42,7 +42,7 @@ class udp_server:
         self.fill_window()
 
     def fill_window(self):
-        while len(self.server_window) < constants.WINDOW_SIZE:
+        while len(self.server_window) < constants.WINDOW_SIZE and self.stream_id < 20:
             try:
                 chunk = next(self.data)
 
@@ -57,13 +57,13 @@ class udp_server:
 
     def send_to_client(self):
         while self.server_window:
-            packet_to_send = self.server_window[0]
-            packet_to_send.sent_time = utils.get_current_timestamp()
-            packet.state = constants.SENT
-
-            self.serverSocket.sendto(packet_to_send.pack(), (self.clientHost, self.clientPort))
-
-            print(f"we sent seq:{packet_to_send.sequence_number}")
+            for p in self.server_window:
+                packet_to_send = p
+                packet_to_send.sent_time = utils.get_current_timestamp()
+                if packet_to_send.state == constants.WAITING:
+                    packet.state = constants.SENT
+                    self.serverSocket.sendto(packet_to_send.pack(), (self.clientHost, self.clientPort))
+                    print(f"we sent seq:{packet_to_send.sequence_number}, stream_id: {packet_to_send.stream_id}")
 
             try:
                 ack_packet, _ = self.serverSocket.recvfrom(constants.ACK_PACKET_SIZE)
@@ -72,6 +72,10 @@ class udp_server:
                 if ack_seq <= self.server_window[0].sequence_number:
                     self.duplicate_ack_count += 1
                     if self.duplicate_ack_count == 3:
+                        print(f"dupAck:{self.duplicate_ack_count}")
+                        packet_to_send = self.server_window[0]
+                        packet_to_send.sent_time = utils.get_current_timestamp()
+                        self.serverSocket.sendto(packet_to_send.pack(), (self.clientHost, self.clientPort))
                         self.duplicate_ack_count = 0
                         continue
 
@@ -83,6 +87,7 @@ class udp_server:
                 for p in self.server_window:
                     cur_time = utils.get_current_timestamp()
                     if cur_time - p.sent_time > constants.PACKET_TIMEOUT_IN_SECONDS:
+                        print(f"retransmitted:{p.sequence_number}")
                         p.sent_time = cur_time
                         self.serverSocket.sendto(p.pack(), (self.clientHost, self.clientPort))
 
