@@ -2,6 +2,7 @@ import socket
 from packet import *
 import constants
 from collections import deque
+import zlib
 
 
 class udp_client:
@@ -82,7 +83,7 @@ class udp_client:
                                 continue
 
                             # returns the payload and stream_id array in the background
-                            yield self.client_window[0].payload, self.client_window[0].stream_id
+                            yield zlib.decompress(self.client_window[0].payload), self.client_window[0].stream_id
 
                             self.client_window.popleft()
 

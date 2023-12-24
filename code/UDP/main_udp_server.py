@@ -1,6 +1,6 @@
 from udp_server import *
 import constants
-
+import zlib
 
 def load_files():
     for i in range(10):
@@ -9,7 +9,7 @@ def load_files():
                 chunk = f.read(constants.PACKET_PAYLOAD_SIZE)
                 if not chunk:
                     break
-                yield chunk
+                yield zlib.compress(chunk)
         yield b''  # end of the file
 
         with open("../../root/objects/small-" + str(i) + ".obj", "rb") as f:
@@ -17,7 +17,7 @@ def load_files():
                 chunk = f.read(constants.PACKET_PAYLOAD_SIZE)
                 if not chunk:
                     break
-                yield chunk
+                yield zlib.compress(chunk)
         yield b''  # end of the file
 
 

@@ -7,7 +7,7 @@ RECEIVED = 2
 
 #packet
 PACKET_HEADER_SIZE = 36 # sequence number(4) + stream_id(2) + sent_time(8) + state(2) + payload_size(4) + checksum(16)
-PACKET_PAYLOAD_SIZE = 1330
+PACKET_PAYLOAD_SIZE = 1325
 PACKET_TOTAL_SIZE = PACKET_HEADER_SIZE + PACKET_PAYLOAD_SIZE
 
 ACK_PACKET_SIZE = 20 # sequence number(4) + checksum(16)
