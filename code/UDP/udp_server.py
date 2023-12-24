@@ -70,18 +70,13 @@ class udp_server:
                     print(f"we sent seq:{packet_to_send.sequence_number}, stream_id: {packet_to_send.stream_id}")
 
             try:
-                #print("azd")
+                #print("azd1")
                 ack_packet, _ = self.serverSocket.recvfrom(constants.ACK_PACKET_SIZE)
                 ack_seq = unpack_ack(ack_packet)
 
-                #print("azd")
+                #print("azd2")
 
-                # if ack_seq == self.server_window[0].sequence_number:
-                #     packet_to_send = self.server_window[0]
-                #     packet_to_send.sent_time = utils.get_current_timestamp()
-                #     self.serverSocket.sendto(packet_to_send.pack(), (self.clientHost, self.clientPort))
-
-                if ack_seq < self.server_window[0].sequence_number:
+                if ack_seq <= self.server_window[0].sequence_number:
                     self.duplicate_ack_count += 1
                     print(f"dupAck:{self.duplicate_ack_count}")
                     packet_to_send = self.server_window[0]
@@ -90,7 +85,7 @@ class udp_server:
                     if self.duplicate_ack_count == 3:
                         print(f"dupAck:{self.duplicate_ack_count}")
                         self.duplicate_ack_count = 0
-                        continue
+                    continue
 
                 self.duplicate_ack_count = 0
 
